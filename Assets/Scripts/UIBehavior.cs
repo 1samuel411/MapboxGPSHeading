@@ -45,8 +45,8 @@
 		}
 
 		public void SubmitButtonDown(){
-			double lat = ARMessageProvider.Instance.deviceLocation._currentLocation.LatitudeLongitude.x;
-			double lon = ARMessageProvider.Instance.deviceLocation._currentLocation.LatitudeLongitude.y;
+			double lat = ARMessageProvider.Instance.deviceLocation.CurrentLocation.LatitudeLongitude.x;
+			double lon = ARMessageProvider.Instance.deviceLocation.CurrentLocation.LatitudeLongitude.y;
 
 			MessageService.Instance.SaveMessage (lat, lon, messageText.text);
 

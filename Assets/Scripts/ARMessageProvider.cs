@@ -40,7 +40,7 @@
 					MessageService.Instance.LoadAllMessages ();
 					Unity.Utilities.Console.Instance.Log("Loading UI and initial messages!", "lightblue");
 				} else {
-					UpdateARMessageLocations (deviceLocation._currentLocation.LatitudeLongitude);
+					UpdateARMessageLocations (deviceLocation.CurrentLocation.LatitudeLongitude);
 					Unity.Utilities.Console.Instance.Log("Repositioning messages!", "lightblue");
 				}
 			} else {

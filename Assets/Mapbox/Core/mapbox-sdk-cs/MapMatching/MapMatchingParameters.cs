@@ -3,12 +3,12 @@
 //     Copyright (c) 2017 Mapbox. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
-
+using System;
 using System.ComponentModel;
+using Mapbox.VectorTile.Geometry;
 
 namespace Mapbox.MapMatching
 {
-
 	/// <summary>Directions profile id</summary>
 	public enum Profile
 	{
@@ -69,7 +69,7 @@ namespace Mapbox.MapMatching
 
 
 	/// <summary>
-	/// https://www.mapbox.com/api-documentation/#retrieve-directions
+	/// https://www.mapbox.com/api-documentation/navigation/#retrieve-directions
 	/// </summary>
 	public enum InstructionLanguages
 	{

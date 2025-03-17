@@ -10,19 +10,24 @@
 		AbstractMap _map;
 
 		ILocationProvider _locationProvider;
+    
+		private void Awake()
+		{
+			// Prevent double initialization of the map. 
+			_map.InitializeOnStart = false;
+		}
 
-		IEnumerator Start()
+		protected virtual IEnumerator Start()
 		{
 			yield return null;
 			_locationProvider = LocationProviderFactory.Instance.DefaultLocationProvider;
-			_locationProvider.OnLocationUpdated += LocationProvider_OnLocationUpdated;
+			_locationProvider.OnLocationUpdated += LocationProvider_OnLocationUpdated; ;
 		}
 
-		void LocationProvider_OnLocationUpdated(Location location)
+		void LocationProvider_OnLocationUpdated(Unity.Location.Location location)
 		{
-			Debug.Log("InitializeMapWithLocationProvider: " + "WTF");
 			_locationProvider.OnLocationUpdated -= LocationProvider_OnLocationUpdated;
-			_map.Initialize(location.LatitudeLongitude, _map.Zoom);
+			_map.Initialize(location.LatitudeLongitude, _map.AbsoluteZoom);
 		}
 	}
 }

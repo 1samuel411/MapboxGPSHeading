@@ -16,16 +16,16 @@
 		IEnumerator DelayAuthenticateRoutine(){
 
 			yield return new WaitForSeconds (1f);
-
-			new GameSparks.Api.Requests.DeviceAuthenticationRequest().Send((response) => {
-				if (!response.HasErrors) {
-					Debug.Log("Device Authenticated...");
-					//tell message provider we have been authenticated
-					ARMessageProvider.Instance.deviceAuthenticated = true;
-				} else {
-					Debug.Log("Error Authenticating Device...");
-				}
-			});
+			//
+			// new GameSparks.Api.Requests.DeviceAuthenticationRequest().Send((response) => {
+			// 	if (!response.HasErrors) {
+			// 		Debug.Log("Device Authenticated...");
+			// 		//tell message provider we have been authenticated
+			// 		ARMessageProvider.Instance.deviceAuthenticated = true;
+			// 	} else {
+			// 		Debug.Log("Error Authenticating Device...");
+			// 	}
+			// });
 		}
 	}
 }

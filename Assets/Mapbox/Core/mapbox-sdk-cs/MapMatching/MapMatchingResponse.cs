@@ -21,13 +21,6 @@ namespace Mapbox.MapMatching
 		/// <summary>Simple constructor for deserialization </summary>
 		public MapMatchingResponse() { }
 
-		///// <summary>Constructor for bubbling errors of underlying web request </summary>
-		//public MapMatchingResponse(ReadOnlyCollection<Exception> requestExceptions)
-		//{
-		//	_requestExceptions = requestExceptions;
-		//}
-
-
 		[JsonProperty("code")]
 		public string Code;
 		[JsonProperty("message")]
@@ -36,9 +29,13 @@ namespace Mapbox.MapMatching
 		public Tracepoint[] Tracepoints;
 		[JsonProperty("matchings")]
 		public MatchObject[] Matchings;
-
+#if !WINDOWS_UWP
 		/// <summary>Error occured during matching</summary>
 		public bool HasMatchingError { get { return !"ok".Equals(Code, StringComparison.InvariantCultureIgnoreCase); } }
+#else
+		/// <summary>Error occured during matching</summary>
+		public bool HasMatchingError { get { return !"ok".Equals(Code, StringComparison.OrdinalIgnoreCase); } }
+#endif
 
 		public string MatchingError
 		{

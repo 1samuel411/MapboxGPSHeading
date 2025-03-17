@@ -17,40 +17,37 @@ namespace Mapbox.Unity.MeshGeneration.Modifiers
 	[CreateAssetMenu(menuName = "Mapbox/Modifiers/Merged Modifier Stack")]
 	public class MergedModifierStack : ModifierStackBase
 	{
-		[NodeEditorElement("Mesh Modifiers")] public List<MeshModifier> MeshModifiers;
-		[NodeEditorElement("Mesh Modifiers")] public List<GameObjectModifier> GoModifiers;
+		private Dictionary<UnityTile, int> _cacheVertexCount = new Dictionary<UnityTile, int>();
+		private Dictionary<UnityTile, List<MeshData>> _cached = new Dictionary<UnityTile, List<MeshData>>();
+		private Dictionary<UnityTile, int> _buildingCount = new Dictionary<UnityTile, int>();
 
-		[NonSerialized] private Dictionary<UnityTile, int> _cacheVertexCount = new Dictionary<UnityTile, int>();
-		[NonSerialized] private Dictionary<UnityTile, List<MeshData>> _cached = new Dictionary<UnityTile, List<MeshData>>();
-		[NonSerialized] private Dictionary<UnityTile, int> _buildingCount = new Dictionary<UnityTile, int>();
+		private Dictionary<UnityTile, List<VectorEntity>> _activeObjects = new Dictionary<UnityTile, List<VectorEntity>>();
+		private MeshData _tempMeshData;
+		private MeshFilter _tempMeshFilter;
+		private GameObject _tempGameObject;
+		private VectorEntity _tempVectorEntity;
+		private MeshData _temp2MeshData;
+		private ObjectPool<VectorEntity> _pool;
+		private ObjectPool<List<VectorEntity>> _listPool;
+		private ObjectPool<List<MeshData>> _meshDataPool;
 
-		[NonSerialized] private Dictionary<UnityTile, List<VectorEntity>> _activeObjects = new Dictionary<UnityTile, List<VectorEntity>>();
-		[NonSerialized] private MeshData _tempMeshData;
-		[NonSerialized] private MeshFilter _tempMeshFilter;
-		[NonSerialized] private GameObject _tempGameObject;
-		[NonSerialized] private VectorEntity _tempVectorEntity;
-		[NonSerialized] private MeshData _temp2MeshData;
-		[NonSerialized] private ObjectPool<VectorEntity> _pool;
-		[NonSerialized] private ObjectPool<List<VectorEntity>> _listPool;
-		[NonSerialized] private ObjectPool<List<MeshData>> _meshDataPool;
+		private int _counter, _counter2;
 
-		[NonSerialized] private int _counter, _counter2;
-
-		private void OnEnable()
+		protected virtual void OnEnable()
 		{
 			//we'll use this to concat building data until it reaches 65000 verts
 			_pool = new ObjectPool<VectorEntity>(() =>
 			{
 				_tempGameObject = new GameObject();
 				_tempMeshFilter = _tempGameObject.AddComponent<MeshFilter>();
-				_tempMeshFilter.mesh.MarkDynamic();
+				_tempMeshFilter.sharedMesh = new Mesh();
 				_tempVectorEntity = new VectorEntity()
 				{
 					GameObject = _tempGameObject,
 					Transform = _tempGameObject.transform,
 					MeshFilter = _tempMeshFilter,
 					MeshRenderer = _tempGameObject.AddComponent<MeshRenderer>(),
-					Mesh = _tempMeshFilter.mesh
+					Mesh = _tempMeshFilter.sharedMesh
 				};
 				return _tempVectorEntity;
 			});
@@ -61,13 +58,16 @@ namespace Mapbox.Unity.MeshGeneration.Modifiers
 
 		public override void OnUnregisterTile(UnityTile tile)
 		{
-			//removing all caches 
+			//removing all caches
 			if (_activeObjects.ContainsKey(tile))
 			{
 				_counter = _activeObjects[tile].Count;
 				for (int i = 0; i < _counter; i++)
 				{
-					_activeObjects[tile][i].GameObject.SetActive(false);
+					if (null != _activeObjects[tile][i].GameObject)
+					{
+						_activeObjects[tile][i].GameObject.SetActive(false);
+					}
 					_pool.Put(_activeObjects[tile][i]);
 				}
 				_activeObjects[tile].Clear();
@@ -100,6 +100,7 @@ namespace Mapbox.Unity.MeshGeneration.Modifiers
 			_cacheVertexCount.Clear();
 			_cached.Clear();
 			_buildingCount.Clear();
+			_pool.Clear();
 
 			_counter = MeshModifiers.Count;
 			for (int i = 0; i < _counter; i++)
@@ -207,6 +208,8 @@ namespace Mapbox.Unity.MeshGeneration.Modifiers
 				//update pooled vector entity with new data
 				if (_tempMeshData.Vertices.Count > 3)
 				{
+					_cached[tile].Clear();
+					_cacheVertexCount[tile] = 0;
 					_tempVectorEntity = null;
 					_tempVectorEntity = _pool.GetObject();
 					_tempVectorEntity.GameObject.SetActive(true);
@@ -250,6 +253,35 @@ namespace Mapbox.Unity.MeshGeneration.Modifiers
 				}
 			}
 			return null;
+		}
+
+		public override void Clear()
+		{
+			foreach (var vectorEntity in _pool.GetQueue())
+			{
+				if (vectorEntity.Mesh != null)
+				{
+					vectorEntity.Mesh.Destroy(true);
+				}
+
+				vectorEntity.GameObject.Destroy();
+			}
+
+			foreach (var tileTuple in _activeObjects)
+			{
+				foreach (var vectorEntity in tileTuple.Value)
+				{
+					if (vectorEntity.Mesh != null)
+					{
+						vectorEntity.Mesh.Destroy(true);
+
+					}
+					vectorEntity.GameObject.Destroy();
+				}
+			}
+			_pool.Clear();
+			_activeObjects.Clear();
+			_pool.Clear();
 		}
 	}
 }
